@@ -1,6 +1,5 @@
 
-import {config} from 'dotenv'
-
+import { config } from 'dotenv';
 config();
 
 const envConfig = {
