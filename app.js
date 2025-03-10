@@ -3,7 +3,8 @@ import cors from "cors";
 import envConfig from "./config/envConfig.js";
 import path from "path";
 import { fileURLToPath } from 'url';
-
+import fs from "fs";
+import morgan from "morgan";
 import connectDb from "./config/connectDb.js";
 
 // ES module fix for __dirname
@@ -14,6 +15,54 @@ const app = express();
 
 // connect to database 
 connectDb();
+
+// Create logs directory if it doesn't exist
+const logsDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir);
+}
+
+// Configure logging
+const accessLogStream = fs.createWriteStream(
+    path.join(__dirname, 'logs', 'access.log'),
+    { flags: 'a' }
+);
+
+// Custom token for response time in a different color
+morgan.token('response-time', function (req, res) {
+    const time = this['response-time'](req, res);
+    return `${time} ms`;
+});
+
+// Custom format string with colors and additional information
+const logFormat = ':method :url :status :response-time - :date[web] - :remote-addr';
+
+// Use both console and file logging in development
+if (envConfig.node_env === "development") {
+    // Console logging with colors
+    app.use(morgan(logFormat, {
+        skip: function (req, res) { return res.statusCode >= 400; }
+    }));
+    
+    // File logging without colors
+    app.use(morgan(logFormat, { 
+        stream: accessLogStream,
+        skip: function (req, res) { return res.statusCode >= 400; }
+    }));
+
+    // Error logging with different format
+    app.use(morgan('combined', {
+        skip: function (req, res) { return res.statusCode < 400; },
+        stream: fs.createWriteStream(
+            path.join(__dirname, 'logs', 'error.log'),
+            { flags: 'a' }
+        )
+    }));
+} else {
+    // In production, only log errors and access to files
+    app.use(morgan('combined', { stream: accessLogStream }));
+}
+
 // middleware
 app.use(express.json());
 app.use(cors());
@@ -27,7 +76,9 @@ app.use(express.static(path.join(__dirname, './public')));
 
 // Routes
 app.get("/", (req, res) => {
-    // You can pass data to your EJS template here
+    // Log custom message for homepage access
+    console.log(`Homepage accessed at ${new Date().toISOString()}`);
+    
     const pageData = {
         title: "LMS - Learning Management System",
         description: "Empower your learning journey with our comprehensive Learning Management System",
@@ -50,14 +101,16 @@ app.get("/", (req, res) => {
         ]
     };
 
-    res.render('../views/index.ejs', pageData);
+    res.render('index', pageData);
 });
 
-// Health check route
+// Health check route with logging
 app.get("/health", (req, res) => {
+    console.log(`Health check performed at ${new Date().toISOString()}`);
     res.json({
         status: "OK",
-        message: "Server is running"
+        message: "Server is running",
+        timestamp: new Date().toISOString()
     });
 });
 
@@ -65,5 +118,6 @@ const port = envConfig.port || 3000;
 
 app.listen(port, () => {
     console.log(`🚀 Server is running at http://localhost:${port}/`);
-    console.log(`🔥 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔥 Environment: ${envConfig.node_env || 'development'}`);
+    console.log(`📝 Logs are being written to: ${path.join(__dirname, 'logs')}`);
 });

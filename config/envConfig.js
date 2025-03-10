@@ -7,6 +7,7 @@ const envConfig = {
   db: process.env,
   db_name:process.env.DB_NAME,
   mongo_uri:process.env.DB_URL,
+  node_env :process.env.NODE_ENV,
 }
 
 export default envConfig;
