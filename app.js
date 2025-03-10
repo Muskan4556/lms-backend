@@ -4,12 +4,16 @@ import envConfig from "./config/envConfig.js";
 import path from "path";
 import { fileURLToPath } from 'url';
 
+import connectDb from "./config/connectDb.js";
+
 // ES module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// connect to database 
+connectDb();
 // middleware
 app.use(express.json());
 app.use(cors());
@@ -45,7 +49,7 @@ app.get("/", (req, res) => {
             }
         ]
     };
-    
+
     res.render('../views/index.ejs', pageData);
 });
 
