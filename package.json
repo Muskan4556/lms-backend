@@ -22,10 +22,12 @@
     "mongoose": "^8.9.5"
   },
   "devDependencies": {
+    "@eslint/js": "^9.22.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/node": "^22.13.10",
+    "eslint": "^9.22.0",
     "globals": "^16.0.0",
     "nodemon": "^3.1.9"
   }
