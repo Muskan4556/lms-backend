@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import fs from "fs";
 import morgan from "morgan";
 import connectDb from "./config/connectDb.js";
+import mongoSanitize from 'express-mongo-sanitize'
 
 // ES module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -43,9 +44,9 @@ if (envConfig.node_env === "development") {
     app.use(morgan(logFormat, {
         skip: function (req, res) { return res.statusCode >= 400; }
     }));
-    
+
     // File logging without colors
-    app.use(morgan(logFormat, { 
+    app.use(morgan(logFormat, {
         stream: accessLogStream,
         skip: function (req, res) { return res.statusCode >= 400; }
     }));
@@ -63,9 +64,12 @@ if (envConfig.node_env === "development") {
     app.use(morgan('combined', { stream: accessLogStream }));
 }
 
+
 // middleware
 app.use(express.json());
 app.use(cors());
+app.use(mongoSanitize());
+
 
 // Set up EJS as view engine
 app.set('view engine', 'ejs');
@@ -78,7 +82,7 @@ app.use(express.static(path.join(__dirname, './public')));
 app.get("/", (req, res) => {
     // Log custom message for homepage access
     console.log(`Homepage accessed at ${new Date().toISOString()}`);
-    
+
     const pageData = {
         title: "LMS - Learning Management System",
         description: "Empower your learning journey with our comprehensive Learning Management System",
@@ -104,15 +108,7 @@ app.get("/", (req, res) => {
     res.render('index', pageData);
 });
 
-// Health check route with logging
-app.get("/health", (req, res) => {
-    console.log(`Health check performed at ${new Date().toISOString()}`);
-    res.json({
-        status: "OK",
-        message: "Server is running",
-        timestamp: new Date().toISOString()
-    });
-});
+
 
 const port = envConfig.port || 3000;
 
