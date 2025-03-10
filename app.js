@@ -4,11 +4,16 @@ import envConfig from "./config/envConfig.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
-import process from "process";
+import mongoSanatize from "express-mongo-sanitize"
+import helmet from 'helmet';
 
+// import swagger 
+import swaggerDoc from 'swagger-ui-express';
+import swaggerdcomentation from "./helper/swaggerDocumentaion.js";
+
+// import routes 
 import authRoute from "./routes/authRoute.js";
 import userRoute from "./routes/userRoutes.js";
-import connectDb from "./config/connectDb.js";
 
 // ES module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -20,13 +25,19 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
+app.use(mongoSanatize());
+app.use(helmet());
+
+// configure swagger 
+app.use('/docs', swaggerDoc.serve);
+app.use('/docs', swaggerDoc.setup(swaggerdcomentation));
 
 // Set up EJS as view engine
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "./views/"));
+app.set("views", path.join(__dirname, "./views"));
 
 // Serve static files
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "./public")));
 
 // Routes
 app.get("/", (req, res) => {
@@ -60,15 +71,6 @@ app.get("/", (req, res) => {
   res.render("index", pageData);
 });
 
-connectDb();
-
-// Health check route
-app.get("/health", (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Server is running",
-  });
-});
 
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/user", userRoute);
@@ -77,5 +79,4 @@ const port = envConfig.port || 3000;
 
 app.listen(port, () => {
   console.log(`🚀 Server is running at http://localhost:${port}/`);
-  console.log(`🔥 Environment: ${process.env.NODE_ENV || "development"}`);
 });

@@ -24,6 +24,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: ["instructor", "student"],
       required: true,
+      default: "student",
     },
     profile: {
       firstName: {
