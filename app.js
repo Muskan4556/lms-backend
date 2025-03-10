@@ -7,7 +7,7 @@ import fs from "fs";
 import morgan from "morgan";
 import connectDb from "./config/connectDb.js";
 import mongoSanitize from 'express-mongo-sanitize'
-
+import helmet from "helmet";
 // ES module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,6 +69,7 @@ if (envConfig.node_env === "development") {
 app.use(express.json());
 app.use(cors());
 app.use(mongoSanitize());
+app.use(helmet());
 
 
 // Set up EJS as view engine
