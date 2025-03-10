@@ -7,6 +7,9 @@ import cookieParser from "cookie-parser";
 import mongoSanatize from "express-mongo-sanitize"
 import helmet from 'helmet';
 
+
+import globalErrorHandler from "./middleware/globalErrorHandler.js";
+import limiter from "./middleware/rateLimit.js";
 // import swagger 
 import swaggerDoc from 'swagger-ui-express';
 import swaggerdcomentation from "./helper/swaggerDocumentaion.js";
@@ -20,6 +23,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+
+// add limiter 
+app.use(limiter);
+
 
 // middleware
 app.use(express.json());
@@ -77,6 +85,8 @@ app.use("/api/v1/user", userRoute);
 
 const port = envConfig.port || 3000;
 
+
+app.use(globalErrorHandler);
 app.listen(port, () => {
   console.log(`🚀 Server is running at http://localhost:${port}/`);
 });
